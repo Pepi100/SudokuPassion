@@ -1,6 +1,6 @@
 # Based on https://www.youtube.com/watch?v=G_UYXzGuqvM
 import numpy as np
-
+import random
 
 M_SIZE = 9
 GRID_SIZE = 3
@@ -9,7 +9,9 @@ settings = {
     "CLASSIC": 1,
     "KNIGHT": 1,
     "NON_CONSEC": 0,
-    "KING": True,
+    "KING": 0,
+    "SANDWICH": 0,
+
 }
 
 # A = np.array([
@@ -25,21 +27,21 @@ settings = {
 # ])
 
 A = np.array([
-    [7, 0, 0, 2, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 6, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 3, 0, 0, 0, 0, 0, 8, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [9, 5, 0, 0, 0, 0, 0, 4, 3],
-    [3, 0, 0, 0, 0, 0, 0, 9, 8],
-    [0, 0, 1, 0, 0, 0, 2, 0, 0],
-    [5, 0, 0, 7, 0, 8, 0, 0, 4]
+    [0, 0, 0, 3, 2, 0, 1, 7, 5],
+    [1, 0, 0, 9, 7, 5, 4, 0, 0],
+    [7, 5, 2, 4, 1, 6, 3, 9, 8],
+    [0, 0, 5, 8, 0, 0, 0, 0, 7],
+    [0, 1, 0, 0, 0, 0, 2, 4, 0],
+    [0, 0, 4, 6, 3, 0, 0, 5, 9],
+    [0, 0, 7, 0, 0, 3, 0, 0, 1],
+    [0, 3, 0, 0, 8, 4, 0, 6, 0],
+    [8, 2, 6, 0, 0, 0, 0, 0, 4]
 ])
 
 
 
 
-def possible(A, i, j, value, settings):
+def is_valid(A, i, j, value, settings):
     if settings["CLASSIC"]:
         #check row + column
         for rc in range(M_SIZE):
@@ -88,16 +90,62 @@ def solve(A):
     # go to all empty
     for i in range(M_SIZE):
         for j in range(M_SIZE):
-            if A[i, j] == 0:
-
-                # try x if x is possible
+            if A[i][j] == 0:
+                # try x if x is is_valid
                 for x in range(1, M_SIZE + 1):
-                    if possible(A, i, j, x, settings=settings):
-                        A[i, j] = x
-                        solve(A)
-                        A[i, j] = 0
-                return
-    print(A)
+                    if is_valid(A, i, j, x, settings=settings):
+                        A[i][j] = x
+                        if solve(A):
+                            return True, A
+                        A[i][j] = 0
+                return False
+    return True, A
 
 
-solve(A)
+def generate_full_board():
+    board = [[0] * 9 for _ in range(9)]
+    def fill_board():
+        for row in range(9):
+            for col in range(9):
+                if board[row][col] == 0:
+                    nums = list(range(1, 10))
+                    random.shuffle(nums)
+                    for num in nums:
+                        if is_valid(board, row, col, num, settings=settings):
+                            board[row][col] = num
+                            if fill_board():
+                                return True
+                            board[row][col] = 0
+                    return False
+        return True
+    fill_board()
+    return board
+
+
+def remove_numbers(board, difficulty=40):
+    puzzle = [row[:] for row in board]
+    attempts = difficulty
+    while attempts > 0:
+        row, col = random.randint(0, 8), random.randint(0, 8)
+        while puzzle[row][col] == 0:
+            row, col = random.randint(0, 8), random.randint(0, 8)
+        backup = puzzle[row][col]
+        puzzle[row][col] = 0
+        board_copy = [r[:] for r in puzzle]
+        if not solve(board_copy):
+            puzzle[row][col] = backup  # Restore if removing breaks uniqueness
+        attempts -= 1
+    return puzzle
+
+def generate_sudoku(difficulty=40):
+    full_board = generate_full_board()
+    # print(full_board)
+    return remove_numbers(full_board, difficulty)
+
+# # Example usage:
+# sudoku_puzzle = generate_sudoku()
+# for row in sudoku_puzzle:
+#     print(row)
+
+_, solution = solve(A)
+print(solution)
