@@ -1,4 +1,18 @@
 # Based on https://www.youtube.com/watch?v=G_UYXzGuqvM
+
+
+[9, 0, 0, 0, 0, 3, 0, 0, 0]
+[0, 0, 3, 0, 0, 0, 4, 0, 8]
+[0, 0, 6, 0, 9, 0, 2, 0, 0]
+[0, 1, 0, 0, 0, 4, 0, 0, 2]
+[5, 0, 0, 0, 6, 0, 0, 0, 1]
+[0, 0, 9, 0, 0, 0, 6, 0, 0]
+[0, 0, 8, 1, 0, 0, 0, 7, 0]
+[2, 0, 0, 0, 0, 0, 1, 6, 4]
+[0, 9, 0, 0, 5, 0, 0, 0, 0]
+25
+
+
 import numpy as np
 import random
 
@@ -7,7 +21,7 @@ GRID_SIZE = 3
 
 settings = {
     "CLASSIC": 1,
-    "KNIGHT": 1,
+    "KNIGHT": 0,
     "NON_CONSEC": 0,
     "KING": 0,
     "SANDWICH": 0,
@@ -26,17 +40,17 @@ settings = {
 #     [0, 0, 0, 0, 0, 0, 0, 0, 0]
 # ])
 
-A = np.array([
-    [0, 0, 0, 3, 2, 0, 1, 7, 5],
-    [1, 0, 0, 9, 7, 5, 4, 0, 0],
-    [7, 5, 2, 4, 1, 6, 3, 9, 8],
-    [0, 0, 5, 8, 0, 0, 0, 0, 7],
-    [0, 1, 0, 0, 0, 0, 2, 4, 0],
-    [0, 0, 4, 6, 3, 0, 0, 5, 9],
-    [0, 0, 7, 0, 0, 3, 0, 0, 1],
-    [0, 3, 0, 0, 8, 4, 0, 6, 0],
-    [8, 2, 6, 0, 0, 0, 0, 0, 4]
-])
+# A = np.array([
+#     [0, 0, 0, 3, 2, 0, 1, 7, 5],
+#     [1, 0, 0, 9, 7, 5, 4, 0, 0],
+#     [7, 5, 2, 4, 1, 6, 3, 9, 8],
+#     [0, 0, 5, 8, 0, 0, 0, 0, 7],
+#     [0, 1, 0, 0, 0, 0, 2, 4, 0],
+#     [0, 0, 4, 6, 3, 0, 0, 5, 9],
+#     [0, 0, 7, 0, 0, 3, 0, 0, 1],
+#     [0, 3, 0, 0, 8, 4, 0, 6, 0],
+#     [8, 2, 6, 0, 0, 0, 0, 0, 4]
+# ])
 
 
 
@@ -83,9 +97,6 @@ def is_valid(A, i, j, value, settings):
     return True
 
 
-
-
-
 def solve(A):
     # go to all empty
     for i in range(M_SIZE):
@@ -102,13 +113,46 @@ def solve(A):
     return True, A
 
 
+def unique_solve(A):
+    def count_solutions(A):
+        # Helper function to count valid solutions
+        solution_count = 0
+
+        # Go through all empty spaces
+        for i in range(M_SIZE):
+            for j in range(M_SIZE):
+                if A[i][j] == 0:
+                    # Try numbers from 1 to M_SIZE
+                    for x in range(1, M_SIZE + 1):
+                        if is_valid(A, i, j, x, settings=settings):
+                            A[i][j] = x
+                            solution_count += count_solutions(A)
+                            A[i][j] = 0  # Reset for backtracking
+
+                            # If more than 1 solution found, return early
+                            if solution_count > 1:
+                                return solution_count
+
+                    return solution_count  # No solution found for this path
+        return 1  # Found one valid solution
+
+    # Count unique solutions
+    unique_solution_count = count_solutions(A)
+
+    # If there's exactly one unique solution, return True
+    if unique_solution_count == 1:
+        return True, A
+    else:
+        return False
+
+
 def generate_full_board():
     board = [[0] * 9 for _ in range(9)]
     def fill_board():
         for row in range(9):
             for col in range(9):
                 if board[row][col] == 0:
-                    nums = list(range(1, 10))
+                    nums = [i for i in range(1, 10)]
                     random.shuffle(nums)
                     for num in nums:
                         if is_valid(board, row, col, num, settings=settings):
@@ -132,7 +176,7 @@ def remove_numbers(board, difficulty=40):
         backup = puzzle[row][col]
         puzzle[row][col] = 0
         board_copy = [r[:] for r in puzzle]
-        if not solve(board_copy):
+        if not unique_solve(board_copy):
             puzzle[row][col] = backup  # Restore if removing breaks uniqueness
         attempts -= 1
     return puzzle
@@ -142,10 +186,31 @@ def generate_sudoku(difficulty=40):
     # print(full_board)
     return remove_numbers(full_board, difficulty)
 
-# # Example usage:
-# sudoku_puzzle = generate_sudoku()
-# for row in sudoku_puzzle:
+# Example usage:
+sudoku_puzzle = generate_sudoku(difficulty=60)
+for row in sudoku_puzzle:
+    print(row)
+
+non_zero_count = sum(1 for row in sudoku_puzzle for num in row if num != 0)
+
+print(f'Number of non-zero elements in the Sudoku puzzle: {non_zero_count}')
+
+# _, solution = solve(sudoku_puzzle)
+# for row in solution:
 #     print(row)
 
-_, solution = solve(A)
-print(solution)
+list = []
+minp = 0;
+minc = 80
+for i in range(300):
+    print(f"{i}/300")
+    sudoku_puzzle = generate_sudoku(difficulty=60)
+    non_zero_count = sum(1 for row in sudoku_puzzle for num in row if num != 0)
+    list.append(non_zero_count)
+    if non_zero_count < minc:
+        minp = sudoku_puzzle
+        minc = non_zero_count
+
+for row in minp:
+    print(row)
+print(minc)
