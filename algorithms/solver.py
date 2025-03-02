@@ -1,16 +1,16 @@
 # Based on https://www.youtube.com/watch?v=G_UYXzGuqvM
 
 
-[9, 0, 0, 0, 0, 3, 0, 0, 0]
-[0, 0, 3, 0, 0, 0, 4, 0, 8]
-[0, 0, 6, 0, 9, 0, 2, 0, 0]
-[0, 1, 0, 0, 0, 4, 0, 0, 2]
-[5, 0, 0, 0, 6, 0, 0, 0, 1]
-[0, 0, 9, 0, 0, 0, 6, 0, 0]
-[0, 0, 8, 1, 0, 0, 0, 7, 0]
-[2, 0, 0, 0, 0, 0, 1, 6, 4]
-[0, 9, 0, 0, 5, 0, 0, 0, 0]
-25
+# [9, 0, 0, 0, 0, 3, 0, 0, 0]
+# [0, 0, 3, 0, 0, 0, 4, 0, 8]
+# [0, 0, 6, 0, 9, 0, 2, 0, 0]
+# [0, 1, 0, 0, 0, 4, 0, 0, 2]
+# [5, 0, 0, 0, 6, 0, 0, 0, 1]
+# [0, 0, 9, 0, 0, 0, 6, 0, 0]
+# [0, 0, 8, 1, 0, 0, 0, 7, 0]
+# [2, 0, 0, 0, 0, 0, 1, 6, 4]
+# [0, 9, 0, 0, 5, 0, 0, 0, 0]
+# 25
 
 
 import numpy as np
@@ -40,17 +40,7 @@ settings = {
 #     [0, 0, 0, 0, 0, 0, 0, 0, 0]
 # ])
 
-# A = np.array([
-#     [0, 0, 0, 3, 2, 0, 1, 7, 5],
-#     [1, 0, 0, 9, 7, 5, 4, 0, 0],
-#     [7, 5, 2, 4, 1, 6, 3, 9, 8],
-#     [0, 0, 5, 8, 0, 0, 0, 0, 7],
-#     [0, 1, 0, 0, 0, 0, 2, 4, 0],
-#     [0, 0, 4, 6, 3, 0, 0, 5, 9],
-#     [0, 0, 7, 0, 0, 3, 0, 0, 1],
-#     [0, 3, 0, 0, 8, 4, 0, 6, 0],
-#     [8, 2, 6, 0, 0, 0, 0, 0, 4]
-# ])
+
 
 
 
@@ -166,9 +156,8 @@ def generate_full_board():
     return board
 
 
-def remove_numbers(board, difficulty=40):
+def remove_numbers(board, attempts):
     puzzle = [row[:] for row in board]
-    attempts = difficulty
     while attempts > 0:
         row, col = random.randint(0, 8), random.randint(0, 8)
         while puzzle[row][col] == 0:
@@ -181,36 +170,44 @@ def remove_numbers(board, difficulty=40):
         attempts -= 1
     return puzzle
 
-def generate_sudoku(difficulty=40):
+def generate_sudoku(difficulty):
     full_board = generate_full_board()
     # print(full_board)
-    return remove_numbers(full_board, difficulty)
+    return remove_numbers(full_board, M_SIZE*M_SIZE - difficulty)
 
-# Example usage:
-sudoku_puzzle = generate_sudoku(difficulty=60)
-for row in sudoku_puzzle:
-    print(row)
 
-non_zero_count = sum(1 for row in sudoku_puzzle for num in row if num != 0)
 
-print(f'Number of non-zero elements in the Sudoku puzzle: {non_zero_count}')
 
-# _, solution = solve(sudoku_puzzle)
-# for row in solution:
-#     print(row)
 
-list = []
-minp = 0;
-minc = 80
-for i in range(300):
-    print(f"{i}/300")
-    sudoku_puzzle = generate_sudoku(difficulty=60)
-    non_zero_count = sum(1 for row in sudoku_puzzle for num in row if num != 0)
-    list.append(non_zero_count)
-    if non_zero_count < minc:
-        minp = sudoku_puzzle
-        minc = non_zero_count
 
-for row in minp:
-    print(row)
-print(minc)
+
+
+def find_min(dif, NUM = 100):
+    minp = 0
+    minc = 81
+    list = []
+    for i in range(NUM):
+        print(f"{i}/{NUM}")
+        sudoku_puzzle = generate_sudoku(difficulty=dif)
+        non_zero_count = sum(1 for row in sudoku_puzzle for num in row if num != 0)
+        list.append(non_zero_count)
+        if non_zero_count < minc:
+            minp = sudoku_puzzle
+            minc = non_zero_count
+
+    for row in minp:
+        print(row)
+    print(minc)
+
+find_min(2)
+
+# [0, 0, 0, 0, 7, 4, 0, 0, 3]
+# [9, 0, 0, 0, 0, 0, 8, 0, 0]
+# [6, 4, 0, 0, 2, 0, 5, 0, 9]
+# [4, 0, 0, 0, 0, 0, 0, 0, 6]
+# [0, 0, 0, 0, 5, 0, 0, 0, 7]
+# [0, 2, 0, 3, 0, 0, 0, 0, 0]
+# [0, 0, 8, 7, 6, 0, 0, 0, 0]
+# [0, 0, 0, 0, 0, 0, 0, 0, 5]
+# [0, 5, 7, 0, 0, 0, 2, 0, 0]
+# 23
