@@ -1,40 +1,72 @@
-import fs from "fs";
-import path from "path";
-import { notFound } from "next/navigation"; // Import the 404 function
+"use client";
 
-export default function PuzzlePage({ params }: { params: { id: string } }) {
-    const filePath = path.join(process.cwd(), "public", "puzzles.json");
-    const puzzles = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    const puzzle = puzzles.find((p: { id: string }) => p.id === params.id);
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import styles from './page.module.css'; // Import the CSS module
 
-    if (!puzzle) {
-        notFound();
+export default function PuzzlePage() {
+    const params = useParams();
+    const [grid, setGrid] = useState<(number | null)[][] | null>(null);
+    const [puzzleName, setPuzzleName] = useState<string>("");
+
+    useEffect(() => {
+        async function fetchPuzzle() {
+            if (!params.id) return;
+
+            try {
+                const response = await fetch(`/api/puzzles/${params.id}`);
+                if (!response.ok) {
+                    throw new Error("Puzzle not found");
+                }
+                const puzzle = await response.json();
+                setGrid(puzzle.grid);
+                setPuzzleName(puzzle.name);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        fetchPuzzle();
+    }, [params.id]);
+
+    const handleChange = (rowIndex: number, colIndex: number, value: string) => {
+        if (!grid) return;
+        const newGrid = grid.map((row, rIdx) =>
+            row.map((num, cIdx) =>
+                rIdx === rowIndex && cIdx === colIndex ? (value ? parseInt(value) || null : null) : num
+            )
+        );
+        setGrid(newGrid);
+    };
+
+    if (!grid) {
+        return <p>Loading...</p>;
     }
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <h2>{puzzle.name}</h2>
-            <h3>Sudoku Grid:</h3>
+        <div className={styles.container}>
+            <h2 className={styles.title}>{puzzleName}</h2>
+            <h3 className={styles.subtitle}>Sudoku Grid:</h3>
             <div style={{ display: "flex", justifyContent: "center" }}>
-                <table style={{ borderCollapse: "collapse" }}>
+                <table className={styles.table}>
                     <tbody>
-                        {puzzle.grid.map((row: number[], rowIndex: number) => (
+                        {grid.map((row, rowIndex) => (
                             <tr key={rowIndex}>
-                                {row.map((num: number | null, colIndex: number) => (
+                                {row.map((num, colIndex) => (
                                     <td
                                         key={colIndex}
-                                        style={{
-                                            border: "1px solid black",
-                                            width: "40px",
-                                            height: "40px",
-                                            textAlign: "center",
-                                            verticalAlign: "middle",
-                                            fontSize: "18px",
-                                            backgroundColor: num === null ? "#f0f0f0" : "white",
-                                            color: num !== null ? "black" : "gray",
-                                        }}
+                                        className={`${styles.cell} ${num !== null ? styles.filled : ''}`}
                                     >
-                                        {num !== null ? num : ""}
+                                        {num !== null ? (
+                                            num
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                maxLength={1}
+                                                className={styles.input}
+                                                onChange={(e) => handleChange(rowIndex, colIndex, e.target.value)}
+                                            />
+                                        )}
                                     </td>
                                 ))}
                             </tr>
@@ -45,4 +77,3 @@ export default function PuzzlePage({ params }: { params: { id: string } }) {
         </div>
     );
 }
-

@@ -199,15 +199,32 @@ def find_min(dif, NUM = 100):
         print(row)
     print(minc)
 
-find_min(2)
+    return minp
 
-# [0, 0, 0, 0, 7, 4, 0, 0, 3]
-# [9, 0, 0, 0, 0, 0, 8, 0, 0]
-# [6, 4, 0, 0, 2, 0, 5, 0, 9]
-# [4, 0, 0, 0, 0, 0, 0, 0, 6]
-# [0, 0, 0, 0, 5, 0, 0, 0, 7]
-# [0, 2, 0, 3, 0, 0, 0, 0, 0]
-# [0, 0, 8, 7, 6, 0, 0, 0, 0]
-# [0, 0, 0, 0, 0, 0, 0, 0, 5]
-# [0, 5, 7, 0, 0, 0, 2, 0, 0]
-# 23
+
+import json
+
+def replace_zeros_with_null(grid):
+    modified_grid =  [[None if num == 0 else num for num in row] for row in grid]
+    for row in modified_grid:
+        print(json.dumps(row), end=",\n")
+
+# find_min(2)
+
+
+
+# Example grid
+grid = [
+    [0, 0, 0, 0, 7, 4, 0, 0, 3],
+    [9, 0, 0, 0, 0, 0, 8, 0, 0],
+    [6, 4, 0, 0, 2, 0, 5, 0, 9],
+    [4, 0, 0, 0, 0, 0, 0, 0, 6],
+    [0, 0, 0, 0, 5, 0, 0, 0, 7],
+    [0, 2, 0, 3, 0, 0, 0, 0, 0],
+    [0, 0, 8, 7, 6, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 5],
+    [0, 5, 7, 0, 0, 0, 2, 0, 0] 
+]
+
+# Replace 0s with None
+new_grid = replace_zeros_with_null(grid)
